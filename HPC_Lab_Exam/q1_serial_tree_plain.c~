@@ -1,0 +1,167 @@
+/* Code to implement prefix scan using tree method. First it uses Forward tree and then uses inverse tree */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+#include<math.h>
+#include<string.h>
+#include<time.h>
+
+#define CLK CLOCK_MONOTONIC
+
+
+/* 
+Function to computes the difference between two time instances
+
+Taken from - http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/ 
+
+Further reading:
+http://stackoverflow.com/questions/6749621/how-to-create-a-high-resolution-timer-in-linux-to-measure-program-performance
+http://stackoverflow.com/questions/3523442/difference-between-clock-realtime-and-clock-monotonic
+*/
+struct timespec diff(struct timespec start, struct timespec end){
+  struct timespec temp;
+  if((end.tv_nsec-start.tv_nsec)<0){
+    temp.tv_sec = end.tv_sec-start.tv_sec-1;
+    temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+  }
+  else{
+    temp.tv_sec = end.tv_sec-start.tv_sec;
+    temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+  }
+  return temp;
+}
+
+  /*
+    The following can be used to print times. Don't use these for 
+    the code you submit. Only for your reference purposes.
+    
+  printf("%20.9lf seconds\n", diff(t1, t2).tv_sec*1e0 + diff(t1, t2).tv_nsec/1e9);
+  printf("%20.9lf milliseconds\n", diff(t1, t2).tv_sec*1e3 + diff(t1, t2).tv_nsec/1e6);
+  printf("%20.9lf microseconds\n", diff(t1, t2).tv_sec*1e6 + diff(t1, t2).tv_nsec/1e3);
+  printf("%20.9lf nanoseconds\n", diff(t1, t2).tv_sec*1e9 + diff(t1, t2).tv_nsec/1e0);
+  */
+
+
+void scan(int *A, int n, int p)
+{	
+	int step,i;
+	int steplimit = (float)log(n)/(float)log(2);
+	int level;
+	
+	for (level = 1, step=2; level <= steplimit; step=step*2, level++)
+	{	
+		for (i=step-1;i<n;i=i+step)
+		{
+			A[i]= A[i] + A[i-step/2];
+		}
+	}
+
+	step=step/2;
+	for (; step>=1; step=step/2)
+	{	
+		for (i=step-1;i<n;i=i+step)
+		{
+			/*if( (float)log(i+1)/(float)log(2) - (int)log(i+1)/log(2) == 0 )	// condition to check if it is power of 2
+				continue;
+			else */
+			
+			if((i+1)%(step*2) == 0)
+				continue;
+			else
+			{
+				A[i] = A[i] + A[i-step];			
+			}
+		}
+	}
+
+
+/*	for(i = 0; i < 25; i++)
+	{
+		printf("%d ", A[i]);
+	}
+	printf("\n");*/
+
+}
+
+int main(int argc, char* argv[])
+{
+    struct timespec start_e2e, end_e2e, start_alg, end_alg, e2e, alg;
+    
+    /* Should start before anything else */
+    clock_gettime(CLK, &start_e2e);
+
+    /* Check if enough command-line arguments are taken in. */
+    if(argc < 4){
+        /* Compare to 4 in parallel code if file input is taken. */
+        printf( "Usage: %s n p\np=0 for serial code.", argv[0] );
+        return -1;
+    }
+
+	int n = atoi(argv[1]);		// size of array
+	int p = atoi(argv[2]);      // no of processors
+	
+	FILE *fp = fopen(argv[3], "r");
+	
+	char *problem_name = "prefix_sum";
+    char *approach_name = "double-tree";
+	
+	int i = 0;
+	
+	// initialize array A
+	int *A = (int *) malloc(sizeof(int) * n);
+
+	char c;
+	
+    while((c = fgetc(fp)) != EOF) {
+        if (c != ' ') {
+            A[i] = c - 48;
+            i++;
+        }
+    }
+
+	clock_gettime(CLK, &start_alg);	/* Start the algo timer */
+	/* Core algorithm follows */
+	scan(A, n, p);
+	/* Core algorithm finished */
+    clock_gettime(CLK, &end_alg);	/* End the algo timer */
+    /* Ensure that only the algorithm is present between these two
+     timers. Further, the whole algorithm should be present. */
+    
+    /* Should end before anything else (printing comes later) */
+    clock_gettime(CLK, &end_e2e);
+    e2e = diff(start_e2e, end_e2e);
+    alg = diff(start_alg, end_alg);
+
+    /* problem_name,approach_name,n,p,e2e_sec,e2e_nsec,alg_sec,alg_nsec
+    Change problem_name to whatever problem you've been assigned
+    Change approach_name to whatever approach has been assigned
+    p should be 0 for serial codes!! 
+    */  
+    printf("%s,%s,%d,%d,%d,%ld,%d,%ld\n", problem_name, approach_name, n, p, e2e.tv_sec, e2e.tv_nsec, alg.tv_sec, alg.tv_nsec);
+
+    char outfilename[50];
+	strcpy(outfilename, "./output/prefix_sum_double-tree_");
+	
+	char nstr[10], pstr[2];
+	
+    sprintf(nstr, "%d", n);
+    strcat(outfilename, nstr);
+    strcat(outfilename, "_");
+    sprintf(pstr, "%d", p);
+    strcat(outfilename, pstr);
+    strcat(outfilename, "_output.txt");
+
+	FILE *fout = fopen(outfilename, "w");
+
+    for (i=0; i<n; i++)
+	{
+		fprintf(fout, "%d ", A[i]);
+	}
+
+//	printf("time: %f\n"/*last element = %d\n"*/, end-start/*, A[n-1]*/);
+
+//	printf("\n");
+
+	return 0;
+}

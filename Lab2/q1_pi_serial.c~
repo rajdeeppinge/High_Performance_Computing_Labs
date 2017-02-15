@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <omp.h>
+
+double approx_pi(int k);
+
+double par_time=0.0;
+int main()
+{
+	double start_time = omp_get_wtime();
+	double pi = approx_pi(100000000);
+	
+	double total_time=0.0;
+	total_time= omp_get_wtime()-start_time;
+	
+	printf("Approximate value of pi:%f, time taken %f, fraction_parallalisable(p)\n", pi,total_time ,par_time/total_time );
+
+	return 0;
+}
+
+double approx_pi(int k)
+{ 
+   
+	int i=0;
+	double pi=0;	
+  
+    double loop_start= omp_get_wtime();
+	for(i=0;i<=k;i++)
+		{
+		
+			pi += (double)(1-2*(i%2))/(2*i+1);
+		
+		}
+
+     par_time=omp_get_wtime()- loop_start;
+     printf("time of parallalizable code :%f\n",par_time);
+	return  4*pi;
+}

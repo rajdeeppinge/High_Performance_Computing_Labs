@@ -1,0 +1,50 @@
+/* Code to implement prefix sum using normal serial method */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+#include <string.h>
+#include<time.h>
+
+int main(int argc, char* argv[])
+{
+    /* Check if enough command-line arguments are taken in. */
+    if(argc < 4){
+        printf( "Usage: %s n p\np=0 for serial code.", argv[0] );
+        return -1;
+    }
+
+	int n = atoi(argv[1]);		// size of array
+	int p = atoi(argv[2]);      // no of processors
+	
+	FILE *fp = fopen(argv[3], "r");
+	
+	char *problem_name = "prefix_sum";
+    char *approach_name = "double-tree";
+	
+	// initialize array on which prefix scan is performed
+	int *A = (int *) malloc(sizeof(int) * n);
+	
+	char c;
+	int i = 0;
+	
+	// read input line from file
+    while((c = fgetc(fp)) != EOF) {
+        if (c != ' ') {
+            A[i] = c - 48;      // for a digit string, the corresponding integer is obtained by subtracting 48
+            i++;
+        }
+    }
+
+    // loop performing prefix_sum
+// serial code is pretty trivial, we simply need to 
+// add the previous term to the next term
+// it seems inherently serial, and hence
+// the parallel algorithm is completely different
+	for (i=0; i<(n-1); i++)
+	{
+		A[i+1] = A[i+1] + A[i];
+	}
+
+	return 0;
+}

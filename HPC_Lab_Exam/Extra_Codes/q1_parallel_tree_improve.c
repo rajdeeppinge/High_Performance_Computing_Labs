@@ -1,0 +1,155 @@
+/* Code to implement prefix scan using tree method. First it uses Forward tree and then uses inverse tree */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+#include<math.h>
+#include<string.h>
+#include<time.h>
+
+
+#define CLK CLOCK_MONOTONIC
+
+/* 
+Function to computes the difference between two time instances
+
+Taken from - http://www.guyrutenberg.com/2007/09/22/profiling-code-using-clock_gettime/ 
+
+//helper function time
+*/
+struct timespec diff(struct timespec start, struct timespec end){
+  struct timespec temp;
+  if((end.tv_nsec-start.tv_nsec)<0){
+    temp.tv_sec = end.tv_sec-start.tv_sec-1;
+    temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+  }
+  else{
+    temp.tv_sec = end.tv_sec-start.tv_sec;
+    temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+  }
+  return temp;
+}
+
+
+/* function to perform prefix scan 
+    INPUT: Integer Array A, size = n, processers = p
+    OUTPUT: Void
+
+*/
+void scan(int *A, int n, int p)
+{	
+	//this is parallel for inclusive scan
+  float f = log(n)/log(2);
+  int g = (int)ceilf(f);
+  
+  omp_set_num_threads(p);	
+
+  int step,pow;
+  int i;
+  for(step=0,pow=1;step<g;step++,pow*=2)
+  {
+  	#pragma omp parallel for
+	for(i=n-1;i>=0;i-=pow*2)
+	{
+		if(i-pow>=0)
+			A[i] = A[i] + A[i-pow];
+	}
+  }
+  
+  pow = n/4;
+  for(step=0;pow>0;step++,pow=pow/2)
+  {
+  	#pragma omp parallel for
+	for(i=2*pow-1;i<n-1;i+=pow*2)
+	{
+		if(i+pow<n)
+			A[i+pow] = A[i+pow] + A[i];
+	}
+  }
+	
+    // both the above operations are inherently serial for a level as computatations for a level must be completed
+    // before going to the next level
+    
+}
+
+int main(int argc, char* argv[])
+{
+    struct timespec start_e2e, end_e2e, start_alg, end_alg, e2e, alg;
+    
+    /* Should start before anything else */
+    clock_gettime(CLK, &start_e2e);
+
+    /* Check if enough command-line arguments are taken in. */
+    if(argc < 4){
+        /* Compare to 4 in parallel code if file input is taken. */
+        printf( "Usage: %s n p\np=0 for serial code.", argv[0] );
+        return -1;
+    }
+
+	int n = atoi(argv[1]);		// size of array
+	int p = atoi(argv[2]);      // no of processors
+	
+	FILE *fp = fopen(argv[3], "r"); // opened the file containing data
+	
+	char *problem_name = "prefix_sum";
+    char *approach_name = "double-tree";
+	
+	// initialize array A
+	int *A = (int *) malloc(sizeof(int) * n);
+
+	char c;
+	int i = 0;
+	
+	// read input line from file
+    while((c = fgetc(fp)) != EOF) {
+        if (c != ' ') {
+            A[i] = c - 48;          // for a digit string, the corresponding integer is obtained by subtracting 48
+            i++;
+        }
+    }
+
+	clock_gettime(CLK, &start_alg);	/* Start the algo timer */
+	/* Core algorithm follows */
+	
+	scan(&A[0], n, p);
+	
+	/* Core algorithm finished */
+    clock_gettime(CLK, &end_alg);	/* End the algo timer */
+    /* Ensure that only the algorithm is present between these two
+     timers. Further, the whole algorithm should be present. */
+    
+    /* Should end before anything else (printing comes later) */
+    clock_gettime(CLK, &end_e2e);
+    e2e = diff(start_e2e, end_e2e);
+    alg = diff(start_alg, end_alg);
+
+    /* problem_name,approach_name,n,p,e2e_sec,e2e_nsec,alg_sec,alg_nsec
+    p should be 0 for serial codes!! 
+    */  
+    printf("%s,%s,%d,%d,%d,%ld,%d,%ld\n", problem_name, approach_name, n, p, e2e.tv_sec, e2e.tv_nsec, alg.tv_sec, alg.tv_nsec);
+
+
+    /* Creating output file */
+    char outfilename[50];
+	strcpy(outfilename, "./output/prefix_sum_double-tree_");
+	
+	char nstr[10], pstr[2];
+	
+	// building the file name according to the given format
+    sprintf(nstr, "%d", n);
+    strcat(outfilename, nstr);
+    strcat(outfilename, "_");
+    sprintf(pstr, "%d", p);
+    strcat(outfilename, pstr);
+    strcat(outfilename, "_output1.txt");
+
+	FILE *fout = fopen(outfilename, "w");
+
+    // writing result to the output file
+    for (i=0; i<n; i++)
+	{
+		fprintf(fout, "%d ", A[i]);
+	}
+
+	return 0;
+}

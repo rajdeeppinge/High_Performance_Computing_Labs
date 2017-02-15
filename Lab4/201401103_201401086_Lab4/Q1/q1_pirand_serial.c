@@ -1,0 +1,53 @@
+/* Serial Programme to calculate value of pi using random numbers by monte-carlo method.*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+//double par_time;
+
+/* function to calculate pi using random numbers
+	input: number of points to take
+	output: approx value of pi
+*/
+void pi_rand(int N)
+{
+	int i, n=0; // number of
+	double x_cor, y_cor;
+
+	unsigned int seed = omp_get_thread_num();		// only one thread. Therefore itcan have any seed
+
+//	double par_start= omp_get_wtime();
+	for (i=0;i<N;i++)
+	{
+		// generating random point
+		x_cor = (rand_r(&seed)/(double)RAND_MAX);
+		y_cor = (rand_r(&seed)/(double)RAND_MAX);
+
+		// if point lies inside the circle, increment count
+		if ((x_cor*x_cor + y_cor*y_cor) <1)
+			n++;
+	}
+//	double par_end= omp_get_wtime();
+
+//	par_time = par_end- par_start;
+//	printf("Approx value of pi : %f\n",4*((double)n)/N);
+//	printf("MFLOPS = %f\n", 6 * N / (1000000*(par_end-par_start))); 
+}
+
+
+
+int main(int argc, char* argv[])
+{
+	int N = atoi(argv[1]);		// number of points to take
+
+	double start,end;
+
+	start= omp_get_wtime();		
+	pi_rand(N);					//function to calculate pi using random numbers
+	end= omp_get_wtime();
+
+	//printf("time: %f, frac_parallelisable: %f\n",end-start,(double)par_time/(end-start));
+	printf("time: %f\n",end-start);
+	return 0;
+}

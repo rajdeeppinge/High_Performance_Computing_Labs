@@ -1,0 +1,66 @@
+#include<stdio.h>
+#include<omp.h>
+
+void matrix_multiply(int mat_size, int block_size);
+
+int main()
+{
+	double start_time = omp_get_wtime();
+	
+	int mat_size = 4;
+	int block_size = 2;
+	matrix_multiply(mat_size, block_size);
+
+	double end_time = omp_get_wtime() - start_time;
+
+	printf("total time = %lf\n", end_time);
+	return 0;	
+}
+
+void matrix_multiply(int mat_size, int block_size)
+{
+	double a[mat_size][mat_size], b[mat_size][mat_size], c[mat_size][mat_size];
+	int i, j, k, jout, kout;
+
+	for(i = 0; i < mat_size; i++) 
+	{
+		for(j = 0; j < mat_size;j++)
+		{
+			a[i][j] = i+j;
+			b[i][j] = i+j;
+			c[i][j] = 0.0;
+		}
+
+	}
+
+	double sum = 0;
+
+	for(kout = 0; kout < mat_size; kout += block_size)
+	{
+		for(jout = 0; jout < mat_size; jout += block_size)
+		{
+			for(i = 0; i < mat_size; i++) 
+			{
+				for(j = jout; j < jout+block_size;j++)
+				{
+					sum = c[i][j];	
+					for(k = kout; k < kout+block_size; k++)
+					{
+						sum += a[i][k]*b[k][j];
+					}
+
+					c[i][j] = sum;
+				}
+			}
+		}
+	}
+
+	for(i = 0; i < mat_size; i++) 
+	{
+		for(j = 0; j < mat_size;j++)
+		{
+			printf("c(%d, %d) = %lf ", i, j, c[i][j]);
+		}
+		printf("\n");
+	}
+}

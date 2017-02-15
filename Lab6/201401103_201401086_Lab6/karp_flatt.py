@@ -1,0 +1,25 @@
+fptr = open('q1_coresVsSpeedup_size1e9.txt', 'r')
+
+kfomp = []
+kfmpi = []
+count = 1
+
+for line in fptr:
+	if count == 1:
+		count += 1
+		continue
+	
+	lst = line.split(" ")
+	p = float(lst[0])
+	omp_si = float(lst[1])
+	mpi_si = float(lst[2])
+	
+	omp = (1.0/omp_si - 1.0/p) / (1.0 - 1.0/p)
+	mpi = (1.0/mpi_si - 1.0/p) / (1.0 - 1.0/p)
+	
+	kfomp.append(omp)
+	kfmpi.append(mpi)
+	
+	
+print kfomp
+print kfmpi

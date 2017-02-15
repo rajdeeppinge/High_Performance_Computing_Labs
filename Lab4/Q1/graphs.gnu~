@@ -1,0 +1,38 @@
+set terminal wxt size 350,262 enhanced font 'Verdana,10' persist
+plot "problemSizeVsTime.txt" using 1:2 with linespoints title 'Serial Code', \
+"problemSizeVsTime.txt" using 1:3 with linespoints title 'Parallel Code';
+
+plot "problemSizeVsSpeedup.txt" using 1:2 with linespoints title 'speedup curve';
+
+plot "coresVsSpeedup_size1e7.txt" using 1:2 with linespoints title 'Size 1e7', \
+"coresVsSpeedup_size1e8.txt" using 1:2 with linespoints title 'Size 1e8';
+
+
+set terminal epslatex size 3.5,2.62 color colortext
+set output 'problemSizeVsTime.tex'
+set xlabel '$size[log base 10]$'
+set ylabel '$time[sec]$'
+set format '$%g$'
+set xtics (0,1,2,3,4,5,6,7,8,9,10)
+set ytics (0,5,10,15,20,25,30,35,40)
+plot "problemSizeVsTime.txt" using 1:2 with linespoints title '$Serial Code$', \
+"problemSizeVsTime.txt" using 1:3 with linespoints title '$Parallel Code$';
+
+set output 'problemSizeVsSpeedup.tex'
+set xlabel '$size[log base 10]$'
+set ylabel '$Speedup$'
+set format '$%g$'
+set xtics (0,1,2,3,4,5,6,7,8,9,10)
+set ytics (0,1,2,3,4,5)
+plot "problemSizeVsSpeedup.txt" using 1:2 with linespoints title '$speedup curve$';
+
+set output 'coresVsSpeedup.tex'
+set xlabel '$No. of Cores$'
+set ylabel '$Speedup$'
+set format '$%g$'
+set xtics (0,1,2,3,4,5)
+set ytics (0,1,2,3,4,5)
+plot "coresVsSpeedup_size1e7.txt" using 1:2 with linespoints title '$Size 1e7$', \
+"coresVsSpeedup_size1e8.txt" using 1:2 with linespoints title '$Size 1e8$';
+
+

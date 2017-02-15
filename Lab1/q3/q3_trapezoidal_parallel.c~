@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <omp.h>
+
+float trap_area(float start,float end, int num_steps);
+float f(float x);
+
+float global_approx;
+
+int main()
+{
+	float start_time = omp_get_wtime();
+	float start=0.0,end=1.0;
+	int num_steps=100000;
+	float approx_area= trap_area(start,end,num_steps);
+	printf("Approx area is: %f, time_taken = %f\n",approx_area, omp_get_wtime()-start_time);
+	return 0;
+}
+
+float f(float x)
+{
+  // return the req formula
+  return x;
+}
+
+float trap_area(float start,float end, int num_steps)
+{
+	
+	int i;	
+    float x_curr;
+	float h= (end-start)/num_steps;
+
+	global_approx = (f(start)+f(end))/2.0;
+
+	#pragma omp parallel
+	{	
+		float approx = 0;
+		#pragma omp for
+		for (i=1;i<=(num_steps-1);i++)
+		{
+			x_curr= start + i*h;	
+			approx += f(x_curr);
+		}
+
+		printf("%f\n", approx); 		
+
+		#pragma omp critical
+		{
+			global_approx += approx;
+		}	
+
+	}
+
+	return global_approx*h;
+	
+}
+
+

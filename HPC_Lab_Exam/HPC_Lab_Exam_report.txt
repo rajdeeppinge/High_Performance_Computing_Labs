@@ -1,0 +1,67 @@
+The analysis that you provide during the lab hours is a key component of your evaluation and thus it needs to be
+accurate as well as comprehensive. The following points should be kept in mind. The exact questions may be slightly
+different and you will be required to answer them on the day of the lab.
+
+• The shape of the speedup curve, particularly, the reasons for trends like increase/decrease, saturation, etc.
+Cache miss ratio increases in parallel algo. step dependency, total work division not possible, work can be divided on a particular level only => parallelize the inner loop, parallel thread creation overhead.
+load imbalance due to varying step sizes.
+
+• Explanation in terms of compute and memory accesses that the code makes. These include the importance of
+compute to memory accesses ratio as well as concepts like memory walls.
+----> For each iteration 3 memory accesses and 1 addition operation therefore memory access is more Processor-DRAM gap
+Also cache miss probability is more
+
+• Speedup bounds that various metrics provide you with. You should be prepared to answer questions regarding how
+Amdahl’s law/effect, Gustafson-Barsis law, Karp-Flatt Metric and the Isoefficienc metric apply to your particular
+problem/approach combination.
+
+Amdahl's S = n/2*log n
+With p processors, parallel time = 2(n/p + log p) = O(n/p + log p)
+for p << n, S ~ p
+
+effect followed til some point
+
+Gustafson
+Find Serial Fraction
+
+
+Karp-Flatt > 1 because no speedup, speeddown
+
+Iso - Problem not scalable
+
+
+• Role of cache(s) in the trends that are observed. These include cache coherence, false sharing as well as order of
+memory access.
+order = for problem size n, memory access is 3 * n. In GBs for size 1e8 and 1e9
+problem of false sharing due to extensive cache use and step dependency and cache miss
+
+• Synchronization overheads that may be present.
+load imbalance, step dependency
+
+
+• The effect of thread scheduling.
+No load imbalance in one particular step, work divided evenly. Therefore not much effect of schedulin 
+
+
+• Granularity of the algorithm or algorithm sub-steps.
+fine granular, memory access increases much more, step dependency
+Another bottleneck
+
+• Miscellaneous other concepts that may apply in your particular problem/approach combination. Things like loop
+unrolling, function call overheads, thread safe functions, etc. should also be mentioned in your analysis.
+---------------------------------------------------
+step dependency therefore can't use loop unrolling
+
+You will also be required to provide some commentary on the quality of the approach for the particular problem,
+its advantages/disadvantages and any difficulties that are faced while parallelizing using that particular approach.
+n threads avilable then advantage since 2 log n time for parallel.
+but p<<n threads. therefore partial work by each thread.
+
+
+Apart from this you will be required to provide the performance measured in memory accesses and FLOPS. You
+can refer to this simple example table for the number of FLOPS you need to count for these basic operations.
+1 FLOP per cycle, n cycles -> n FLOP/ time = FLOPS
+memory 24 bytes per iteration, n iter => 24n bytes
+
+code and machine balance
+

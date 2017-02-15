@@ -1,0 +1,56 @@
+#include<stdio.h>
+#include<omp.h>
+
+void matrix_multiply(int mat_size);
+
+int main()
+{
+	double start_time = omp_get_wtime();
+	
+	int mat_size = 4;
+	matrix_multiply(mat_size);
+
+	double end_time = omp_get_wtime() - start_time;
+
+	printf("total time = %lf\n", end_time);
+	return 0;	
+}
+
+void matrix_multiply(int mat_size)
+{
+	double a[mat_size][mat_size], b[mat_size][mat_size], c[mat_size][mat_size];
+	int i, j, k;
+
+	for(i = 0; i < mat_size; i++) 
+	{
+		for(j = 0; j < mat_size;j++)
+		{
+			a[i][j] = i+j;
+			b[i][j] = i+j;
+		}
+
+	}
+
+//	double parallel_start = omp_get_wtime();
+	#pragma omp parallel num_threads(4)
+	{		
+		#pragma omp for schedule(static) nowait
+		for(i = 0; i < mat_size; i++) 
+		{
+			for(j = 0; j < mat_size;j++)
+			{
+				c[i][j] = 0;
+				{		
+					for(k = 0; k < mat_size; k++)
+					{
+						c[i][j] += a[i][k]*b[k][j];
+					}
+				}
+//				printf("c(%d, %d) = %lf ", i, j, c[i][j]);
+			}
+//			printf("\n");
+		}
+	}
+
+//	printf("time for parallelizable code %lf\n", omp_get_wtime() - parallel_start);
+}
